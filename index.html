@@ -77,15 +77,19 @@
             <div class="flex items-center space-x-3 text-[11px] text-slate-600">
                 <button onclick="setCategoryFilter('ALL')" class="hover:text-indigo-600 font-semibold uppercase transition">GRID</button>
                 <span class="text-slate-200">|</span>
-                <button onclick="openConfigModal()" class="hover:text-emerald-700 font-bold uppercase text-emerald-600 flex items-center gap-1 transition" title="ตั้งค่าเชื่อมต่อ Google Sheets">
-                    <i class="fa-solid fa-cloud text-xs"></i><span id="cloudStatusText">ตั้งค่า Cloud (Google Sheets)</span>
+                <button onclick="openConfigModal()" class="hover:text-emerald-700 font-bold uppercase text-emerald-600 flex items-center gap-1 transition" title="สถานะฐานข้อมูล Supabase">
+                    <i class="fa-solid fa-database text-xs"></i><span id="cloudStatusText">SUPABASE</span>
+                </button>
+                <span class="text-slate-200">|</span>
+                <button onclick="openAuthModal()" id="authButton" class="hover:text-indigo-700 font-bold uppercase text-indigo-600 flex items-center gap-1 transition" title="เข้าสู่ระบบผู้ดูแล">
+                    <i class="fa-solid fa-user-lock text-xs"></i><span id="authButtonText">ADMIN LOGIN</span>
                 </button>
                 <span class="text-slate-200">|</span>
                 <button onclick="openAddProjectModal()" class="hover:text-indigo-700 font-bold uppercase text-indigo-600 flex items-center gap-1 transition">
                     <i class="fa-solid fa-plus text-xs"></i>เพิ่มโปรเจกต์
                 </button>
                 <span class="text-slate-200">|</span>
-                <button onclick="syncWithCloud()" class="hover:text-indigo-600 transition" title="ดึงข้อมูลจาก Google Sheets">
+                <button onclick="syncWithCloud()" class="hover:text-indigo-600 transition" title="ดึงข้อมูลจาก Supabase">
                     <i class="fa-solid fa-rotate-right mr-1"></i>SYNC
                 </button>
                 <span class="text-slate-200">|</span>
@@ -107,12 +111,12 @@
                 <span id="syncBadge" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold px-3 py-1 rounded-xl uppercase tracking-wider text-[10px] shadow-xs">
                     CLOUD SYNCED
                 </span>
-                <span class="font-medium text-slate-800 font-sans text-sm">ศูนย์รวมแอปพลิเคชันและเครื่องมือพัฒนากร ( Google Sheets Cloud Connected )</span>
+                <span class="font-medium text-slate-800 font-sans text-sm">ศูนย์รวมแอปพลิเคชันและเครื่องมือพัฒนากร ( Supabase Cloud Connected )</span>
             </div>
             <div class="flex items-center space-x-3">
-                <span class="text-slate-500 hidden md:inline">STORAGE: <span id="storageModeLabel" class="text-emerald-600 font-bold">GOOGLE SHEETS</span></span>
+                <span class="text-slate-500 hidden md:inline">STORAGE: <span id="storageModeLabel" class="text-emerald-600 font-bold">SUPABASE</span></span>
                 <button onclick="syncWithCloud()" class="bg-slate-900 hover:bg-indigo-600 text-white px-4 py-2 font-bold rounded-xl uppercase tracking-wider transition text-[11px] shadow-sm hover:shadow-md flex items-center gap-1.5">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> DOWNLOAD FROM SHEETS
+                    <i class="fa-solid fa-cloud-arrow-down"></i> SYNC FROM CLOUD
                 </button>
             </div>
         </div>
@@ -182,7 +186,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span>SYSTEM LOCAL PERSISTENCE: ACTIVE</span>
+                <span>SUPABASE CLOUD DATABASE: ACTIVE</span>
             </div>
             <div class="flex items-center space-x-4 text-[10px] uppercase">
                 <span>TOTAL APPS: <strong id="total-count-footer" class="text-indigo-600 font-bold">0</strong></span>
@@ -265,41 +269,50 @@
         </div>
     </div>
 
-    <!-- Modal for Config Google Sheets -->
+    <!-- Modal for Supabase status / configuration -->
     <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-900 text-sm tracking-wider uppercase font-mono-custom flex items-center gap-2">
-                    <i class="fa-solid fa-cloud text-emerald-600"></i> GOOGLE SHEETS CLOUD SETTINGS
+                    <i class="fa-solid fa-database text-emerald-600"></i> SUPABASE DATABASE
                 </h3>
                 <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1 uppercase font-mono-custom">Google Apps Script Web App URL *</label>
-                    <input type="text" id="scriptUrlInput" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs font-mono-custom focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
-                    <p class="text-[10px] text-slate-400 mt-1">วาง Web App URL ที่ได้จากการ Deploy Google Apps Script ใน Google Drive</p>
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-emerald-800 space-y-1">
+                    <p class="font-bold">ฐานข้อมูลกลาง Supabase</p>
+                    <p id="databaseInfoText">กำลังตรวจสอบการเชื่อมต่อ…</p>
                 </div>
-                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-emerald-800 text-[11px] space-y-1">
-                    <p class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i>วิธีสร้างและเชื่อมต่อ Google Sheets:</p>
-                    <ol class="list-decimal list-inside space-y-0.5 text-[10px]">
-                        <li>เปิด Google Sheets ใหม่ใน Google Drive</li>
-                        <li>เลือกเมนู <strong>ส่วนขยาย (Extensions)</strong> &gt; <strong>Apps Script</strong></li>
-                        <li>วางโค้ด Apps Script (ที่ระบบเตรียมไว้ให้)</li>
-                        <li>กด <strong>การทบทวน/Deploy</strong> &gt; เลือก <strong>เว็บแอป (Web App)</strong></li>
-                        <li>ตั้งค่า ผู้มีสิทธิ์เข้าถึง (Who has access) เป็น <strong>"ทุกคน (Anyone)"</strong></li>
-                        <li>คัดลอก URL มาวางในช่องด้านบนแล้วกด บันทึก</li>
-                    </ol>
-                </div>
+                <p class="text-slate-600">ข้อมูลรายการแอปถูกจัดเก็บบน PostgreSQL และซิงค์ร่วมกันทุกอุปกรณ์ ไม่ต้องตั้งค่า Google Apps Script อีกต่อไป</p>
                 <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 font-mono-custom">
-                    <button type="button" onclick="closeConfigModal()" class="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl uppercase transition">CANCEL</button>
-                    <button type="button" onclick="saveConfig()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl uppercase shadow-md shadow-emerald-200 transition">SAVE & CONNECT</button>
+                    <button type="button" onclick="closeConfigModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl uppercase transition">CLOSE</button>
+                    <button type="button" onclick="syncWithCloud()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl uppercase shadow-md transition">SYNC NOW</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Logic with Google Sheets Cloud Integration -->
+    <!-- Admin sign-in modal -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-sm uppercase font-mono-custom"><i class="fa-solid fa-user-shield text-indigo-600 mr-2"></i>ADMIN SIGN IN</h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-700 w-8 h-8 rounded-full hover:bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="authForm" onsubmit="signInAdmin(event)" class="space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-700 mb-1">อีเมลผู้ดูแล</label><input id="adminEmail" type="email" required autocomplete="username" class="w-full border border-slate-200 rounded-xl p-3 outline-none focus:border-indigo-500" placeholder="admin@example.com"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">รหัสผ่าน</label><input id="adminPassword" type="password" required autocomplete="current-password" class="w-full border border-slate-200 rounded-xl p-3 outline-none focus:border-indigo-500" placeholder="รหัสผ่าน"></div>
+                <p id="authError" class="text-rose-600 text-[11px]"></p>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeAuthModal()" class="px-4 py-2 border border-slate-200 rounded-xl">ยกเลิก</button><button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl">เข้าสู่ระบบ</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supabase client (Free PostgreSQL backend) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+
+    <!-- JavaScript Logic with Supabase Cloud Integration -->
     <script>
         // Initial Default Data
         const DEFAULT_PROJECTS = [
@@ -327,15 +340,50 @@
 
         let projects = [];
         let currentCategory = 'ALL';
-        // โหลดค่า Web App URL จาก LocalStorage ทันทีที่เปิดเว็บ
-        const DEFAULT_GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrbkGnk9eJQXABPhTuj-STZw-4u8Go_XTA3gMzrqCnMMS9fJOJ9VA36Ev__Tqx3Y26Ig/exec';
-        let googleScriptUrl = (() => {
-            try {
-                return localStorage.getItem('cdd_google_script_url') || DEFAULT_GOOGLE_SCRIPT_URL;
-            } catch (e) {
-                return DEFAULT_GOOGLE_SCRIPT_URL;
-            }
-        })();
+        let currentUser = null;
+        const SUPABASE_URL = window.CDD_SUPABASE_URL || '';
+        const SUPABASE_ANON_KEY = window.CDD_SUPABASE_ANON_KEY || '';
+        const supabaseClient = (window.supabase && /^https:\/\//.test(SUPABASE_URL) && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('ใส่_'))
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            : null;
+
+        function requireAdmin() {
+            if (currentUser) return true;
+            alert('กรุณาเข้าสู่ระบบผู้ดูแลก่อนดำเนินการ');
+            openAuthModal();
+            return false;
+        }
+        function toDbProject(p) {
+            return { id: Number(p.id), title: p.title || '', path: p.path || '', category: p.category || 'ทั่วไป', badge_color: p.badgeColor || 'blue', description: p.desc || '', version: p.version || '', icon: p.icon || '' };
+        }
+        function fromDbProject(p) {
+            return { id: Number(p.id), title: p.title || '', path: p.path || '', category: p.category || 'ทั่วไป', badgeColor: p.badge_color || 'blue', desc: p.description || '', version: p.version || '', icon: p.icon || '' };
+        }
+        function setCloudStatus(status, detail = '') {
+            const textEl = document.getElementById('cloudStatusText');
+            const labelEl = document.getElementById('storageModeLabel');
+            const badgeEl = document.getElementById('syncBadge');
+            const states = {
+                CONNECTED: ['Supabase: เชื่อมต่อแล้ว', 'SUPABASE', 'CONNECTED', 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'],
+                SYNCING: ['Supabase: กำลังซิงค์…', 'SUPABASE', 'SYNCING', 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'],
+                OFFLINE: ['Supabase: ยังไม่เชื่อมต่อ', 'LOCAL CACHE', 'OFFLINE', 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'],
+                ERROR: ['Supabase: เกิดข้อผิดพลาด', 'LOCAL CACHE', 'CONNECTION ERROR', 'bg-gradient-to-r from-rose-600 to-red-600 text-white']
+            };
+            const v = states[status] || states.OFFLINE;
+            if (textEl) textEl.innerText = v[0] + (detail ? ' · ' + detail : '');
+            if (labelEl) labelEl.innerText = v[1];
+            if (badgeEl) { badgeEl.innerText = v[2]; badgeEl.className = v[3] + ' font-bold px-3 py-1 rounded-xl uppercase tracking-wider text-[10px] shadow-xs'; }
+            const info = document.getElementById('databaseInfoText');
+            if (info) info.innerText = detail || (status === 'CONNECTED' ? 'เชื่อมต่อฐานข้อมูลสำเร็จ' : status === 'OFFLINE' ? 'ยังไม่ได้ตั้งค่า URL และ anon key ใน supabase-config.js' : v[0]);
+        }
+        function updateAuthUI() {
+            const btn = document.getElementById('authButtonText');
+            const icon = document.querySelector('#authButton i');
+            if (btn) btn.innerText = currentUser ? 'SIGN OUT' : 'ADMIN LOGIN';
+            if (icon) icon.className = currentUser ? 'fa-solid fa-right-from-bracket text-xs' : 'fa-solid fa-user-lock text-xs';
+            const addBtn = document.querySelector('button[onclick="openAddProjectModal()"]');
+            if (addBtn) addBtn.classList.toggle('opacity-60', !currentUser);
+        }
 
         // Render Cards List
         function renderProjects() {
@@ -404,8 +452,8 @@
                             <div class="text-[10px] font-mono-custom text-slate-400 mb-3 flex items-center justify-between border-t border-slate-100 pt-3">
                                 <span>${p.version || 'v1.0.0'}</span>
                                 <div class="space-x-1">
-                                    <button onclick="editProject(${p.id})" class="hover:text-indigo-600 p-1" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button onclick="deleteProject(${p.id})" class="hover:text-rose-600 p-1" title="ลบ"><i class="fa-solid fa-trash-can"></i></button>
+                                    ${currentUser ? `<button onclick="editProject(${p.id})" class="hover:text-indigo-600 p-1" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteProject(${p.id})" class="hover:text-rose-600 p-1" title="ลบ"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                                     <button onclick="copyPath('${p.path}')" class="hover:text-amber-600 p-1" title="คัดลอกพาธ"><i class="fa-solid fa-copy"></i></button>
                                 </div>
                             </div>
@@ -452,202 +500,111 @@
             renderProjects();
         }
 
-        // Google Sheets connection helpers (JSONP for reliable cross-origin GET)
-        function getProjectsFromCloud() {
-            return new Promise((resolve, reject) => {
-                if (!googleScriptUrl) return reject(new Error('ยังไม่ได้ตั้งค่า Google Apps Script URL'));
-
-                const callbackName = '__cddSheetsCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-                const script = document.createElement('script');
-                let finished = false;
-                let timeout;
-
-                const cleanup = () => {
-                    if (finished) return;
-                    finished = true;
-                    clearTimeout(timeout);
-                    script.remove();
-                    try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-                };
-
-                window[callbackName] = (data) => {
-                    cleanup();
-                    if (!Array.isArray(data)) reject(new Error('รูปแบบข้อมูลจาก Google Sheets ไม่ถูกต้อง'));
-                    else resolve(data);
-                };
-
-                script.onerror = () => {
-                    cleanup();
-                    reject(new Error('เรียก Google Apps Script ไม่สำเร็จ'));
-                };
-
-                timeout = setTimeout(() => {
-                    cleanup();
-                    reject(new Error('Google Sheets ไม่ตอบกลับภายในเวลาที่กำหนด'));
-                }, 15000);
-
-                const separator = googleScriptUrl.includes('?') ? '&' : '?';
-                script.src = googleScriptUrl + separator + 'action=getProjects&callback=' +
-                    encodeURIComponent(callbackName) + '&_=' + Date.now();
-                document.head.appendChild(script);
-            });
-        }
-
-        function setCloudStatus(status, detail = '') {
-            const textEl = document.getElementById('cloudStatusText');
-            const labelEl = document.getElementById('storageModeLabel');
-            const badgeEl = document.getElementById('syncBadge');
-
-            const states = {
-                CONNECTED: ['เชื่อมต่อ Google Sheets แล้ว', 'GOOGLE SHEETS', 'CONNECTED', 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'],
-                SYNCING: ['กำลังซิงค์ Google Sheets…', 'GOOGLE SHEETS', 'SYNCING', 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'],
-                OFFLINE: ['Google Sheets: ออฟไลน์', 'LOCAL CACHE', 'OFFLINE', 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'],
-                ERROR: ['Google Sheets: เกิดข้อผิดพลาด', 'LOCAL CACHE', 'CONNECTION ERROR', 'bg-gradient-to-r from-rose-600 to-red-600 text-white']
-            };
-            const s = states[status] || states.OFFLINE;
-            if (textEl) textEl.innerText = s[0] + (detail ? ' · ' + detail : '');
-            if (labelEl) labelEl.innerText = s[1];
-            if (badgeEl) {
-                badgeEl.innerText = s[2];
-                badgeEl.className = s[3] + ' font-bold px-3 py-1 rounded-xl uppercase tracking-wider text-[10px] shadow-xs';
-            }
-        }
-
-        function updateCloudStatusUI() {
-            // A saved URL is configuration, not proof of a live connection.
-            setCloudStatus('OFFLINE', googleScriptUrl ? 'รอตรวจสอบการเชื่อมต่อ' : 'ยังไม่ได้ตั้งค่า URL');
-        }
-
-        // Load local cache first, then refresh from Google Sheets on every page load.
+        // Supabase database operations
         async function loadProjects() {
             try {
-                googleScriptUrl = localStorage.getItem('cdd_google_script_url') || DEFAULT_GOOGLE_SCRIPT_URL;
-                if (googleScriptUrl) localStorage.setItem('cdd_google_script_url', googleScriptUrl);
-            } catch (e) {
-                googleScriptUrl = DEFAULT_GOOGLE_SCRIPT_URL;
-            }
-            const saved = localStorage.getItem('cdd_launcher_apps_v1');
-
-            if (saved) {
-                try { projects = JSON.parse(saved); }
-                catch (e) { projects = [...DEFAULT_PROJECTS]; }
-            } else {
-                projects = [...DEFAULT_PROJECTS];
-            }
-
+                const cached = localStorage.getItem('cdd_launcher_apps_v1');
+                if (cached) projects = JSON.parse(cached);
+            } catch (e) { projects = [...DEFAULT_PROJECTS]; }
+            if (!projects.length) projects = [...DEFAULT_PROJECTS];
             renderProjects();
-
-            if (googleScriptUrl) {
-                await syncWithCloud({ silent: true });
-            } else {
-                setCloudStatus('OFFLINE', 'ยังไม่ได้ตั้งค่า URL');
-            }
+            if (!supabaseClient) { setCloudStatus('OFFLINE', 'กรุณาตั้งค่า supabase-config.js'); return; }
+            await syncWithCloud({ silent: true });
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user || null;
+            updateAuthUI();
+            renderProjects();
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                currentUser = session?.user || null;
+                updateAuthUI();
+                renderProjects();
+            });
         }
-
-        // Save local cache, POST to Apps Script, then verify by reading back.
-        async function saveProjects() {
-            localStorage.setItem('cdd_launcher_apps_v1', JSON.stringify(projects));
-
-            if (!googleScriptUrl) {
-                setCloudStatus('OFFLINE', 'บันทึกไว้ในเครื่องเท่านั้น');
-                return false;
-            }
-
-            try {
-                setCloudStatus('SYNCING');
-                await fetch(googleScriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'saveProjects', projects: projects })
-                });
-
-                // no-cors responses are opaque; verify by reading the data back.
-                await new Promise(resolve => setTimeout(resolve, 500));
-                const cloudProjects = await getProjectsFromCloud();
-                if (JSON.stringify(cloudProjects) !== JSON.stringify(projects)) {
-                    throw new Error('ข้อมูลที่อ่านกลับมาไม่ตรงกับข้อมูลที่บันทึก');
-                }
-                setCloudStatus('CONNECTED', 'บันทึกและตรวจสอบแล้ว');
-                return true;
-            } catch (err) {
-                console.error('Failed to sync to Google Sheets:', err);
-                setCloudStatus('ERROR', err.message);
-                return false;
-            }
-        }
-
         async function syncWithCloud(options = {}) {
-            try {
-                googleScriptUrl = localStorage.getItem('cdd_google_script_url') || googleScriptUrl || DEFAULT_GOOGLE_SCRIPT_URL;
-            } catch (e) {
-                googleScriptUrl = googleScriptUrl || DEFAULT_GOOGLE_SCRIPT_URL;
-            }
-            if (!googleScriptUrl.trim()) {
-                setCloudStatus('OFFLINE', 'ยังไม่ได้ตั้งค่า URL');
-                if (!options.silent) openConfigModal();
-                return false;
-            }
-
+            if (!supabaseClient) { setCloudStatus('OFFLINE', 'กรุณาตั้งค่า URL และ anon key ใน supabase-config.js'); if (!options.silent) alert('ยังไม่ได้ตั้งค่าการเชื่อมต่อ Supabase'); return false; }
             try {
                 setCloudStatus('SYNCING');
-                const data = await getProjectsFromCloud();
-                projects = data;
+                const { data, error } = await supabaseClient.from('apps').select('*').order('id', { ascending: true });
+                if (error) throw error;
+                projects = (data || []).map(fromDbProject);
                 localStorage.setItem('cdd_launcher_apps_v1', JSON.stringify(projects));
                 renderProjects();
                 setCloudStatus('CONNECTED', 'ซิงค์ข้อมูลล่าสุดแล้ว');
-                if (!options.silent) alert('ซิงค์ข้อมูลจาก Google Sheets สำเร็จ!');
+                if (!options.silent) alert('ซิงค์ข้อมูลจาก Supabase สำเร็จ!');
                 return true;
             } catch (err) {
-                console.error('Error fetching from Google Sheets:', err);
-                setCloudStatus('ERROR', err.message);
-                if (!options.silent) alert('เชื่อมต่อ Google Sheets ไม่สำเร็จ: ' + err.message);
+                console.error('Supabase sync error:', err);
+                setCloudStatus('ERROR', err.message || 'ไม่สามารถอ่านฐานข้อมูลได้');
+                if (!options.silent) alert('เชื่อมต่อ Supabase ไม่สำเร็จ: ' + (err.message || err));
                 return false;
             }
         }
-
-        // Config Modal Handlers
-        function openConfigModal() {
-            const input = document.getElementById('scriptUrlInput');
-            if (input) input.value = localStorage.getItem('cdd_google_script_url') || '';
-            const modal = document.getElementById('configModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
+        async function writeAudit(action, details = {}) {
+            if (!supabaseClient || !currentUser) return;
+            const { error } = await supabaseClient.from('audit_logs').insert({ action, details, actor: currentUser.id });
+            if (error) console.warn('Audit log failed:', error.message);
+        }
+        async function saveProjects() {
+            if (!requireAdmin()) return false;
+            if (!supabaseClient) { setCloudStatus('OFFLINE', 'ยังไม่ได้ตั้งค่า Supabase'); return false; }
+            try {
+                setCloudStatus('SYNCING');
+                const payload = projects.map(toDbProject);
+                const { error } = await supabaseClient.rpc('replace_apps', { payload });
+                if (error) throw error;
+                await writeAudit('replace_apps', { count: payload.length });
+                localStorage.setItem('cdd_launcher_apps_v1', JSON.stringify(projects));
+                setCloudStatus('CONNECTED', 'บันทึกข้อมูลแล้ว');
+                return true;
+            } catch (err) {
+                console.error('Supabase save error:', err);
+                setCloudStatus('ERROR', err.message || 'บันทึกไม่สำเร็จ');
+                alert('บันทึกข้อมูลไม่สำเร็จ: ' + (err.message || err));
+                return false;
             }
         }
-
+        function openConfigModal() {
+            const modal = document.getElementById('configModal');
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+            if (!supabaseClient) setCloudStatus('OFFLINE', 'ยังไม่ได้ตั้งค่า supabase-config.js');
+        }
         function closeConfigModal() {
             const modal = document.getElementById('configModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
-
-        async function saveConfig() {
-            const url = document.getElementById('scriptUrlInput').value.trim();
-            if (url && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(url)) {
-                alert('URL ไม่ถูกต้อง กรุณาใช้ Google Apps Script Web App URL ที่ลงท้ายด้วย /exec');
-                return;
-            }
-            if (url) {
-                try { localStorage.setItem('cdd_google_script_url', url); } catch (e) {}
-                googleScriptUrl = url;
-            } else {
-                localStorage.removeItem('cdd_google_script_url');
-                googleScriptUrl = '';
-            }
-            closeConfigModal();
-            if (googleScriptUrl) {
-                await syncWithCloud({ silent: false });
-            } else {
-                setCloudStatus('OFFLINE', 'ล้างค่าการเชื่อมต่อแล้ว');
-            }
+        function openAuthModal() {
+            if (currentUser) { signOutAdmin(); return; }
+            document.getElementById('authError').innerText = '';
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+        async function signInAdmin(e) {
+            e.preventDefault();
+            if (!supabaseClient) { document.getElementById('authError').innerText = 'ยังไม่ได้ตั้งค่า Supabase'; return; }
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) { document.getElementById('authError').innerText = error.message; return; }
+            currentUser = data.user;
+            updateAuthUI();
+            renderProjects();
+            closeAuthModal();
+            alert('เข้าสู่ระบบผู้ดูแลสำเร็จ');
+        }
+        async function signOutAdmin() {
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) alert('ออกจากระบบไม่สำเร็จ: ' + error.message);
+            currentUser = null; updateAuthUI(); renderProjects();
         }
 
         // Add/Edit Modal Handlers
         function openAddProjectModal() {
+            if (!requireAdmin()) return;
             document.getElementById('projectForm').reset();
             document.getElementById('projId').value = '';
             document.querySelector('input[name="linkType"][value="file"]').checked = true;
@@ -665,8 +622,9 @@
             modal.classList.remove('flex');
         }
 
-        function saveProject(e) {
+        async function saveProject(e) {
             e.preventDefault();
+            if (!requireAdmin()) return;
             const id = document.getElementById('projId').value;
             const title = document.getElementById('projTitle').value;
             let path = document.getElementById('projPath').value.trim();
@@ -695,12 +653,12 @@
                 });
             }
 
-            saveProjects();
-            closeAddProjectModal();
-            renderProjects();
+            const saved = await saveProjects();
+            if (saved) { closeAddProjectModal(); renderProjects(); }
         }
 
         function editProject(id) {
+            if (!requireAdmin()) return;
             const p = projects.find(item => item.id === id);
             if (!p) return;
 
@@ -723,12 +681,16 @@
             modal.classList.add('flex');
         }
 
-        function deleteProject(id) {
-            if (confirm('คุณต้องการลบแอปพลิเคชันนี้ออกจากรายการหรือไม่?')) {
-                projects = projects.filter(p => p.id !== id);
-                saveProjects();
-                renderProjects();
-            }
+        async function deleteProject(id) {
+            if (!requireAdmin()) return;
+            if (!confirm('คุณต้องการลบแอปพลิเคชันนี้ออกจากรายการหรือไม่?')) return;
+            const { error } = await supabaseClient.from('apps').delete().eq('id', id);
+            if (error) { alert('ลบข้อมูลไม่สำเร็จ: ' + error.message); return; }
+            await writeAudit('delete_app', { id });
+            projects = projects.filter(p => p.id !== id);
+            localStorage.setItem('cdd_launcher_apps_v1', JSON.stringify(projects));
+            renderProjects();
+            setCloudStatus('CONNECTED', 'ลบรายการแล้ว');
         }
 
         function copyPath(path) {
@@ -757,6 +719,7 @@
         }
 
         function importProjects(event) {
+            if (!requireAdmin()) { event.target.value = ''; return; }
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -765,9 +728,7 @@
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported)) {
                         projects = imported;
-                        saveProjects();
-                        renderProjects();
-                        alert('นำเข้าข้อมูลโปรเจกต์สำเร็จ!');
+                        saveProjects().then(ok => { if (ok) { renderProjects(); alert('นำเข้าข้อมูลโปรเจกต์สำเร็จ!'); } });
                     }
                 } catch(err) {
                     alert('รูปแบบไฟล์ JSON ไม่ถูกต้อง');
